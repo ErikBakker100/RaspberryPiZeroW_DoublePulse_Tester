@@ -1,0 +1,121 @@
+// Dual Pulse Generator for ESP
+// Erik Bakker 2025
+// Partly used from Teensy 4.0 Signal Generator, Electronics Workshop, Robin O'Reilly
+
+#include <string.h>
+#include <stdlib.h>
+#include "../lib/rpi/include/rpi.h"
+#include "../lib/gpio/include/gpio.h"
+#include "../lib/uart/include/uartmini.h"
+#include "../lib/json/include/jsmn.h"
+
+#define OUTPUT_PIN 18 // GPIO pin for output
+#define CHAR_BUFFER 100 // Buffer size for incoming JSON string
+
+// Timing Variables
+//  _____________                   ____________
+// | PulseWidth1 | interPulseDelay | PulseWith2 | Pulseinterval
+//                _________________              _______________
+
+// Set default 
+#define PW1 70 // Pulse Width, starts with 0,5 usec, 80nsec resolution, so 
+#define IPD 30 // Inter Pulse width, starts with 0,4 usec
+#define PW2 50 // Pulse Width 2, starts with 0,5 usec
+#define PI 500 // Pulse Interval, starts with 1,2usec
+unsigned long Intervals[4]={PW1, IPD, PW2, PI}; // Array to hold the intervals
+
+// put function declarations here:
+void DoublePulseControl(void); // Function to control the double pulse generation
+
+void notmain() {
+  char jsonString[CHAR_BUFFER]; // Uart buffer for receiving JSON string
+  jsmn_parser p; // JSON parser
+  jsmntok_t t[CHAR_BUFFER]; // Array of tokens for JSON parsing
+  jsmn_init(&p);
+  uart_init(); // Initialize UART
+  gpio_init(OUTPUT_PIN, GPIO_OUT);
+  gpio_write(OUTPUT_PIN, LOW); // Initial state low (inactive)
+  delay(300); // Give serial port time to open
+  uart_puts("**************Dual Pulse Generator**************\r\n");
+  uart_puts("> Usage: Send JSON string, for e.g {\"pulseWidth1\": 70, \"interPulseDelay\": 30, \"pulseWidth2\": 50, \"pulseInterval\": 500}.\r\n");
+  uart_puts("> Using output port: ");
+  uart_put_uint(OUTPUT_PIN);
+  uart_puts(", default values :\r\n");
+  uart_puts("> _____________                   ____________\r\n");
+  uart_puts(">| pulseWidth1 | interPulseDelay | pulseWith2 | pulseInterval |\r\n");
+  uart_puts(">      70       _____ 30 ________      50      _____ 500______\r\n");
+
+  while (1) {
+    if (uart_read_line_blocking(jsonString, CHAR_BUFFER, 10000)) { // If a character is in the UART buffer, try to get the whole string until recieving /n, or timeout.
+      uart_puts("> Parsing JSON string...\r\n");
+      int r = jsmn_parse(&p, jsonString, strlen(jsonString), t, sizeof(t) / sizeof(t[0]));
+      if (r < 0) {
+        uart_puts(">ERR Parsing JSON: ");
+        switch (r) {
+          case JSMN_ERROR_NOMEM:
+            uart_puts("Not enough tokens were provided.\r\n");
+            break;
+          case JSMN_ERROR_INVAL:
+            uart_puts("Invalid character in JSON string.\r\n");
+            break;
+          case JSMN_ERROR_PART:
+            uart_puts("The string is not a full JSON packet.\r\n");
+            break;
+          default:
+            uart_puts("Unknown error.\r\n");
+            break;
+        }
+        continue; // Skip to the next iteration of the loop
+      }
+      // Assume the top-level element is an object
+      if (t[0].type != JSMN_OBJECT) {
+        uart_puts(">ERR Parsing JSON: The top-level element is not an object.\r\n");
+        break; // Wait for next JSON string
+      }
+      // Loop through all keys in the JSON object
+      for (int i = 1; i < r; i++) {
+        if (t[i].type == JSMN_STRING && t[i].size == 1) { // Check if the token is a string and has size 1
+          char key[CHAR_BUFFER]; // Buffer to hold the key string
+          strncpy(key, jsonString + t[i].start, t[i].end - t[i].start); // Copy the key string from the JSON string
+          key[t[i].end - t[i].start] = '\0'; // Null-terminate the string
+          if (strcmp(key, "pulseWidth1") == 0) {
+            Intervals[0] = strtoul(jsonString + t[i + 1].start, NULL, 10); // Convert the value to unsigned long and store it in the array
+            uart_puts("> pulseWidth1 set to:     ");
+            uart_put_uint(Intervals[0]);
+            uart_puts("\r\n");
+          } else if (strcmp(key, "interPulseDelay") == 0) {
+            Intervals[1] = strtoul(jsonString + t[i + 1].start, NULL, 10);
+            uart_puts("> interPulseDelay set to: ");
+            uart_put_uint(Intervals[1]);
+            uart_puts("\r\n");
+          } else if (strcmp(key, "pulseWidth2") == 0) {
+            Intervals[2] = strtoul(jsonString + t[i + 1].start, NULL, 10);
+            uart_puts("> pulseWidth2 set to:     ");
+            uart_put_uint(Intervals[2]);
+            uart_puts("\r\n");
+          } else if (strcmp(key, "pulseInterval") == 0) {
+            Intervals[3] = strtoul(jsonString + t[i + 1].start, NULL, 10);
+            uart_puts("> pulseInterval set to:   ");
+            uart_put_uint(Intervals[3]);
+            uart_puts("\r\n");
+          } else {
+            uart_puts(">ERR Parsing JSON: Unknown key in JSON object.\r\n");
+            continue; // Skip to the next iteration of the loop
+          }
+        }
+      }
+    }
+    DoublePulseControl(); // Call the function to generate double pulse
+  }
+}
+
+void DoublePulseControl() {
+    gpio_write(OUTPUT_PIN, HIGH); 
+    delay(Intervals[0]); // PulseWidth1
+    gpio_write(OUTPUT_PIN, LOW);
+    delay(Intervals[1]); // interPulseDelay
+    gpio_write(OUTPUT_PIN, HIGH);
+    delay(Intervals[2]); // PulseWith2
+    gpio_write(OUTPUT_PIN, LOW);
+    delay(Intervals[3]); // Pulseinterval
+}
