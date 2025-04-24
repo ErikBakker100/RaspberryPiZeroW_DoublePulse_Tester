@@ -47,35 +47,42 @@ void notmain() {
 
   while (1) {
     if (uart_read_line_blocking(jsonString, CHAR_BUFFER, 10000)) { // If a character is in the UART buffer, try to get the whole string until recieving /n, or timeout.
-      uart_puts("> Parsing JSON string...\r\n");
+      uart_puts("> Parsing JSON string... : ");
+      uart_puts(jsonString); // Print the received JSON string
+      uart_puts("\r\n");
+      jsmn_init(&p);
       int r = jsmn_parse(&p, jsonString, strlen(jsonString), t, sizeof(t) / sizeof(t[0]));
       if (r < 0) {
         uart_puts(">ERR Parsing JSON: ");
         switch (r) {
           case JSMN_ERROR_NOMEM:
             uart_puts("Not enough tokens were provided.\r\n");
-            break;
+            continue;
           case JSMN_ERROR_INVAL:
             uart_puts("Invalid character in JSON string.\r\n");
-            break;
+            continue;
           case JSMN_ERROR_PART:
             uart_puts("The string is not a full JSON packet.\r\n");
-            break;
+            continue;
           default:
             uart_puts("Unknown error.\r\n");
-            break;
+            continue;
         }
         continue; // Skip to the next iteration of the loop
       }
       // Assume the top-level element is an object
       if (t[0].type != JSMN_OBJECT) {
         uart_puts(">ERR Parsing JSON: The top-level element is not an object.\r\n");
-        break; // Wait for next JSON string
+        continue; // Wait for next JSON string
       }
       // Loop through all keys in the JSON object
       for (int i = 1; i < r; i++) {
         if (t[i].type == JSMN_STRING && t[i].size == 1) { // Check if the token is a string and has size 1
-          char key[CHAR_BUFFER]; // Buffer to hold the key string
+          char key[30]; // Buffer to hold the key string
+          if (t[i].end - t[i].start >= sizeof(key)) {
+            uart_puts(">ERR Parsing JSON: Key is too long.\r\n");
+            continue; // Skip to the next iteration of the loop
+          }
           strncpy(key, jsonString + t[i].start, t[i].end - t[i].start); // Copy the key string from the JSON string
           key[t[i].end - t[i].start] = '\0'; // Null-terminate the string
           if (strcmp(key, "pulseWidth1") == 0) {
@@ -99,14 +106,16 @@ void notmain() {
             uart_put_uint(Intervals[3]);
             uart_puts("\r\n");
           } else {
-            uart_puts(">ERR Parsing JSON: Unknown key in JSON object.\r\n");
-            continue; // Skip to the next iteration of the loop
+            uart_puts(">ERR Parsing JSON: ");
+            uart_puts(key);
+            uart_puts(" unknown in JSON object.\r\n");
           }
         }
       }
     }
     DoublePulseControl(); // Call the function to generate double pulse
   }
+  uart_puts("Program ended\r\n");
 }
 
 void DoublePulseControl() {
