@@ -87,31 +87,29 @@ void notmain() {
           key[t[i].end - t[i].start] = '\0'; // Null-terminate the string
           if (strcmp(key, "pulseWidth1") == 0) {
             Intervals[0] = strtoul(jsonString + t[i + 1].start, NULL, 10); // Convert the value to unsigned long and store it in the array
-            uart_puts("> pulseWidth1 set to:     ");
-            uart_put_uint(Intervals[0]);
-            uart_puts("\r\n");
           } else if (strcmp(key, "interPulseDelay") == 0) {
             Intervals[1] = strtoul(jsonString + t[i + 1].start, NULL, 10);
-            uart_puts("> interPulseDelay set to: ");
-            uart_put_uint(Intervals[1]);
-            uart_puts("\r\n");
           } else if (strcmp(key, "pulseWidth2") == 0) {
             Intervals[2] = strtoul(jsonString + t[i + 1].start, NULL, 10);
-            uart_puts("> pulseWidth2 set to:     ");
-            uart_put_uint(Intervals[2]);
-            uart_puts("\r\n");
           } else if (strcmp(key, "pulseInterval") == 0) {
             Intervals[3] = strtoul(jsonString + t[i + 1].start, NULL, 10);
-            uart_puts("> pulseInterval set to:   ");
-            uart_put_uint(Intervals[3]);
-            uart_puts("\r\n");
           } else {
             uart_puts(">ERR Parsing JSON: ");
             uart_puts(key);
-            uart_puts(" unknown in JSON object.\r\n");
+            uart_puts(" not in use.\r\n");
           }
         }
       }
+      uart_puts("> Intervals set to: \r\n");
+      uart_puts("> pulseWidth1: ");
+      uart_put_uint(Intervals[0]);
+      uart_puts("\r\n> interPulseDelay: ");
+      uart_put_uint(Intervals[1]);
+      uart_puts("\r\n> pulseWidth2: ");
+      uart_put_uint(Intervals[2]);
+      uart_puts("\r\n> pulseInterval: ");
+      uart_put_uint(Intervals[3]);
+      uart_puts("\r\n> Starting new pulse generation...\r\n");
     }
     DoublePulseControl(); // Call the function to generate double pulse
   }
