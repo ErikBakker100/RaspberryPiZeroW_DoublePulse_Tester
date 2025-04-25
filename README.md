@@ -4,7 +4,7 @@ Method for Measuring Switching Parameters The standard test method for measuring
 Program runs on an Raspberry Pi Zero as bare metal program (tested on a Pi ZeroW V1.1). Minimum pulsewith = 0,4 micro second, resolution 80nsec. For example: sending JSON {"pulseWidth1": 0} via serial port gives a delay of 0,4 usec + (10*0,08usec) = 1,2usec. For the delay between pulstrains (pulseInterval) the starting delay is 1,5usec. So sending JSON {"pulseInterval": 10} gives 1,5 usec + (10*0,08usec) = 2,3usec.
 Connect 
 Sending a Json like: {"pulseInterval": 500, "pulseWidth1": 10, "interPulseDelay": 200, "pulseWidth2": 10} via the serial port (115200 baud, n, 8, 1) generates: <br />
-> _____________$~~~~~~~~~~~~~~~~~$____________ <br />
+>&nbsp; ____________&nbsp;   &nbsp;   &nbsp;   &nbsp;   &nbsp; _____________ <br />
 >| pulseWidth1 | interPulseDelay | pulseWith2 | pulseInterval
 >     10        ______ 200 ______     10       _____ 500 _____ <br />
 ## Connections
