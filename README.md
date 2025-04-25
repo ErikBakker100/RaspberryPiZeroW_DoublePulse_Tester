@@ -21,7 +21,7 @@ Made on a Windows11 machine using:
 make: The makefile is made to be used with https://www.gnu.org/software/make/.
 compiler: The Compiler used is 'arm-gnu-toolchain-14.2.rel1-mingw-w64-i686-arm-none-eabi.exe' downloaded from https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
 I had to include the install directories from both in my system variables PATH by hand. Do not know why, and did not spent the time to find out why.
-After running 'make' copy kernel.img to an SD. Don't forget to copy
+After running 'make' copy kernel.img to an SD. Don't forget to copy bootcode.bin and start.elf. All in the root of the SD card.
 
 ## Modifying values via JSON
 Included is a .exe file to run on a windows pc to generate a JSON (only to use with this DoublePulse_Tester. Source code can be found on https://github.com/ErikBakker100/JSONGenerator
