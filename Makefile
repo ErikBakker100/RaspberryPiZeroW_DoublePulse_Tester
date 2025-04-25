@@ -47,7 +47,7 @@ $(TARGET).elf: $(OBJS)
 # Genereer kernel.img (binair image)
 kernel.img: $(TARGET).elf
 	$(OBJCOPY) --srec-forceS3 $(TARGET).elf -O srec $(TARGET).srec
-	$(OBJCOPY) $(TARGET).elf -O binary $(TARGET).img
+	$(OBJCOPY) $(TARGET).elf -O binary kernel.img
 
 kernel.list: $(TARGET).elf
 	$(OBJDUMP) -d -S $< > $@
