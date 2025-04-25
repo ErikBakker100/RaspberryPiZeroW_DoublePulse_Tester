@@ -1,0 +1,2 @@
+core_freq=250
+dtoverlay=disable-bt
