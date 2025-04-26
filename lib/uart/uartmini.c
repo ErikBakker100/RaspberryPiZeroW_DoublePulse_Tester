@@ -3,38 +3,38 @@
 
 void uart_init() {
     // Disable the UART before configuring it
-    *AUX_ENABLES = 0;
+    AUX_ENABLES = 0;
 
-    *AUX_ENABLES = 1;
+    AUX_ENABLES = 1;
 
-    *AUX_MU_CNTL_REG = 0;           // Disable TX/RX
-    *AUX_MU_LCR_REG = 3;            // 8-bit mode
-    *AUX_MU_MCR_REG = 0;            // No flow control
-    *AUX_MU_IER_REG = 0;            // Disable interrupts
-    *AUX_MU_IIR_REG = 0xC6;         // Clear FIFOs
-    *AUX_MU_BAUD_REG = (CORE_FREQ / (8 * BAUDRATE)) - 1; // Set baud rate
+    AUX_MU_CNTL_REG = 0;           // Disable TX/RX
+    AUX_MU_LCR_REG = 3;            // 8-bit mode
+    AUX_MU_MCR_REG = 0;            // No flow control
+    AUX_MU_IER_REG = 0;            // Disable interrupts
+    AUX_MU_IIR_REG = 0xC6;         // Clear FIFOs
+    AUX_MU_BAUD_REG = (CORE_FREQ / (8 * BAUDRATE)) - 1; // Set baud rate
 
     // Set GPIO 14 and 15 to ALT5 (Mini UART)
-    unsigned int ra = *GPFSEL1;
+    unsigned int ra = GPFSEL1;
     ra &= ~(7 << 12);   // Clear FSEL14
     ra |= 2 << 12;      // ALT5
     ra &= ~(7 << 15);   // Clear FSEL15
     ra |= 2 << 15;      // ALT5
-    *GPFSEL1 = ra;
+    GPFSEL1 = ra;
 
     // Disable pull up/down for pins 14 and 15
-    *GPPUD = 0;
+    GPPUD = 0;
     delay(150);
-    *GPPUDCLK0 = (1 << 14) | (1 << 15);
+    GPPUDCLK0 = (1 << 14) | (1 << 15);
     delay(150);
-    *GPPUDCLK0 = 0;
+    GPPUDCLK0 = 0;
 
-    *AUX_MU_CNTL_REG = 3; // Enable TX and RX
+    AUX_MU_CNTL_REG = 3; // Enable TX and RX
 }
 
 void uart_send(unsigned int c) {
-    while (!(*AUX_MU_LSR_REG & 0x20));
-    *AUX_MU_IO_REG = c;
+    while (!(AUX_MU_LSR_REG & 0x20));
+    AUX_MU_IO_REG = c;
 }
 
 void uart_puts(const char *s) {
@@ -64,8 +64,8 @@ void uart_put_uint(unsigned int n) {
 }
 
 int uart_try_recv(void) {
-    if (*AUX_MU_LSR_REG & 0x01) {
-        return *AUX_MU_IO_REG & 0xFF;
+    if (AUX_MU_LSR_REG & 0x01) {
+        return AUX_MU_IO_REG & 0xFF;
     } else {
         return -1; // Geen data beschikbaar
     }

@@ -2,8 +2,7 @@
 // Erik Bakker 2025
 // Partly used from Teensy 4.0 Signal Generator, Electronics Workshop, Robin O'Reilly
 
-#include <string.h>
-#include <stdlib.h>
+#include "../lib/general/include/stdlib.h" // Include standard library for string functions>
 #include "../lib/rpi/include/rpi.h"
 #include "../lib/gpio/include/gpio.h"
 #include "../lib/uart/include/uartmini.h"
@@ -34,7 +33,7 @@ void notmain() {
   jsmn_init(&p);
   uart_init(); // Initialize UART
   gpio_init(OUTPUT_PIN, GPIO_OUT);
-  gpio_write(OUTPUT_PIN, LOW); // Initial state low (inactive)
+  gpio_clear(OUTPUT_PIN); // Initial state low (inactive)
   delay(300); // Give serial port time to open
   uart_puts("**************Dual Pulse Generator**************\r\n");
   uart_puts("> Usage: Send JSON string, for e.g {\"pulseWidth1\": 70, \"interPulseDelay\": 30, \"pulseWidth2\": 50, \"pulseInterval\": 500}.\r\n");
@@ -44,6 +43,10 @@ void notmain() {
   uart_puts("> _____________                   ____________\r\n");
   uart_puts(">| pulseWidth1 | interPulseDelay | pulseWith2 | pulseInterval |\r\n");
   uart_puts(">      70       _____ 30 ________      50      _____ 500______\r\n");
+  // clear receive buffer
+  while ((AUX_MU_LSR_REG) & 0x01) {
+    (void)(AUX_MU_IO_REG); // read and discard
+  }
 
   while (1) {
     if (uart_read_line_blocking(jsonString, CHAR_BUFFER, 10000)) { // If a character is in the UART buffer, try to get the whole string until recieving /n, or timeout.
@@ -117,12 +120,16 @@ void notmain() {
 }
 
 void DoublePulseControl() {
-    gpio_write(OUTPUT_PIN, HIGH); 
+    gpio_set(OUTPUT_PIN);
+//    gpio_write(OUTPUT_PIN, HIGH); 
     delay(Intervals[0]); // PulseWidth1
-    gpio_write(OUTPUT_PIN, LOW);
+    gpio_clear(OUTPUT_PIN);
+//    gpio_write(OUTPUT_PIN, LOW);
     delay(Intervals[1]); // interPulseDelay
-    gpio_write(OUTPUT_PIN, HIGH);
+    gpio_set(OUTPUT_PIN);
+//    gpio_write(OUTPUT_PIN, HIGH);
     delay(Intervals[2]); // PulseWith2
-    gpio_write(OUTPUT_PIN, LOW);
+    gpio_clear(OUTPUT_PIN);
+//    gpio_write(OUTPUT_PIN, LOW);
     delay(Intervals[3]); // Pulseinterval
 }

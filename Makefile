@@ -50,7 +50,7 @@ kernel.img: $(TARGET).elf
 	$(OBJCOPY) $(TARGET).elf -O binary kernel.img
 
 kernel.list: $(TARGET).elf
-	$(OBJDUMP) -d -S $< > $@
+	$(OBJDUMP) -d -S -C -l $< > $@
 
 clean:
 #	$(RM) $(TARGET).elf $(TARGET).bin $(TARGET).img $(TARGET).srec $(C_OBJS) $(ASM_OBJS)
