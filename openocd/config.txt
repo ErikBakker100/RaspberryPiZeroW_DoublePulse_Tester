@@ -1,0 +1,4 @@
+# Run in 32-bit mode
+arm_64bit=0
+# Enable jtag pins (i.e. GPIO22-GPIO27)
+gpio=22-27=a4
