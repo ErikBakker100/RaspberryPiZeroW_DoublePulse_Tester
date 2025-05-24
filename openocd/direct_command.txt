@@ -1,7 +1,0 @@
-"C:\OpenOCD\bin\openocd.exe" ^
-  -c "gdb port 50000" ^
-  -c "tcl port 50001" ^
-  -c "telnet port 50002" ^
-  -s "Z:\Elektronica\Projecten\2025\DoublePulseGenerator\Software\RaspberryPiZero2W" ^
-  -f "openocd\ft232r.cfg" ^
-  -f "openocd\raspberrypi_zero2w.cfg"

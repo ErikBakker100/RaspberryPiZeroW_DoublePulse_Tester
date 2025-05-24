@@ -132,40 +132,6 @@ void uart_init ( void )
     ra|=2<<15;    //alt5
     PUT32(GPFSEL1,ra);
 
-#ifdef DEBUG // If 'make debug' used
-    #warning "DEBUG is defined"
-    // GPIO 22 t/m 27 zijn de JTAG-pinnen. Deze moeten worden ingesteld op ALT4.
-    // Eerst TRST (GPIO22) als output zetten en hoog maken
-    ra = GET32(GPFSEL2);
-    ra &= ~(7 << 6);   // clear bits for GPIO22
-    ra |= 1 << 6;      // set to output (ALT0 = 100, output = 001)
-    PUT32(GPFSEL2, ra);
-    PUT32(GPSET0, (1 << 22)); // zet GPIO22 hoog (TRST)
-    // De GPIO-pinnen voor JTAG zijn als volgt:
-    /* GPIO-pinnen voor JTAG (ALT4)
-    GPIO	JTAG-functie	ALT functie
-    GPIO 22	ARM_TRST	ALT4
-    GPIO 23	ARM_RTCK	ALT4
-    GPIO 24	ARM_TDO	ALT4
-    GPIO 25	ARM_TCK	ALT4
-    GPIO 26	ARM_TDI	ALT4
-    GPIO 27	ARM_TMS	ALT4 */
-    ra=GET32(GPFSEL2); // // GPIO 22–27 zitten in GPFSEL2
-    ra&=~(7<<6); //gpio22
-    ra|=4<<6;    //alt4
-    ra&=~(7<<9); //gpio23
-    ra|=4<<9;    //alt4
-    ra&=~(7<<12); //gpio24
-    ra|=4<<12;    //alt4
-    ra&=~(7<<15); //gpio25
-    ra|=4<<15;    //alt4
-    ra&=~(7<<18); //gpio26
-    ra|=4<<18;    //alt4
-    ra&=~(7<<21); //gpio27
-    ra|=4<<21;    //alt4
-    PUT32(GPFSEL2,ra);
-#endif
-
     //Zonder dit kan ruis de pin beïnvloeden als de lijn zweeft.
     //PUT32(GPPUD,0);
     //for(ra=0;ra<150;ra++) dummy(ra);
